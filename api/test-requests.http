@@ -1,0 +1,44 @@
+### Health Check
+GET http://localhost:3000/health
+
+### Basic Search
+GET http://localhost:3000/api/search?query=laptop&size=5
+
+### Search Electronics
+GET http://localhost:3000/api/search?category=Electronics&size=10
+
+### Search with Price Filter
+GET http://localhost:3000/api/search?query=headphones&minPrice=500&maxPrice=3000
+
+### Search with Multiple Filters
+GET http://localhost:3000/api/search?category=Clothing&brand=Nike&minRating=4&inStock=true
+
+### Sort by Price (Low to High)
+GET http://localhost:3000/api/search?query=shoes&sortBy=price_asc&size=10
+
+### Sort by Rating
+GET http://localhost:3000/api/search?sortBy=rating&size=10
+
+### Autocomplete
+GET http://localhost:3000/api/autocomplete?q=sam
+
+### Autocomplete - Phone
+GET http://localhost:3000/api/autocomplete?q=phone
+
+### Get Product by ID
+GET http://localhost:3000/api/products/PROD-000001
+
+### Get Similar Products
+GET http://localhost:3000/api/products/PROD-000001/similar?size=5
+
+### Get Statistics
+GET http://localhost:3000/api/stats
+
+### Search with Pagination
+GET http://localhost:3000/api/search?query=electronic&page=2&size=20
+
+### Search by Tag
+GET http://localhost:3000/api/search?tags=bestseller&size=10
+
+### Search In Stock + High Rating
+GET http://localhost:3000/api/search?inStock=true&minRating=4.5&sortBy=popular
