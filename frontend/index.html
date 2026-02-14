@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elasticsearch Product Search</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🔍 Product Search Engine</h1>
+            <p class="subtitle">Powered by Elasticsearch</p>
+        </header>
+
+        <!-- Statistics Bar -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <span class="stat-value" id="totalProducts">-</span>
+                <span class="stat-label">Products</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="totalCategories">-</span>
+                <span class="stat-label">Categories</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="totalBrands">-</span>
+                <span class="stat-label">Brands</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="avgPrice">-</span>
+                <span class="stat-label">Avg Price</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="avgRating">-</span>
+                <span class="stat-label">Avg Rating</span>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search products (e.g., laptop, shoes, headphones)..."
+                    autocomplete="off"
+                >
+                <button id="searchBtn">Search</button>
+                <button id="clearBtn">Clear</button>
+            </div>
+            
+            <!-- Autocomplete Suggestions -->
+            <div id="autocompleteResults" class="autocomplete-results"></div>
+        </div>
+
+        <!-- Filters and Results Container -->
+        <div class="content-wrapper">
+            <!-- Filters Sidebar -->
+            <aside class="filters-sidebar">
+                <h3>Filters</h3>
+                
+                <!-- Sort By -->
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select id="sortBy">
+                        <option value="relevance">Relevance</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="rating">Top Rated</option>
+                        <option value="popular">Most Popular</option>
+                        <option value="newest">Newest</option>
+                    </select>
+                </div>
+
+                <!-- Price Range -->
+                <div class="filter-group">
+                    <label>Price Range</label>
+                    <div class="price-inputs">
+                        <input type="number" id="minPrice" placeholder="Min" min="0">
+                        <span>-</span>
+                        <input type="number" id="maxPrice" placeholder="Max" min="0">
+                    </div>
+                </div>
+
+                <!-- Rating -->
+                <div class="filter-group">
+                    <label>Minimum Rating</label>
+                    <select id="minRating">
+                        <option value="">Any</option>
+                        <option value="4.5">4.5 & up</option>
+                        <option value="4">4.0 & up</option>
+                        <option value="3.5">3.5 & up</option>
+                        <option value="3">3.0 & up</option>
+                    </select>
+                </div>
+
+                <!-- In Stock -->
+                <div class="filter-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="inStock">
+                        In Stock Only
+                    </label>
+                </div>
+
+                <!-- Categories (Dynamic) -->
+                <div class="filter-group">
+                    <label>Category</label>
+                    <div id="categoryFilters" class="checkbox-group"></div>
+                </div>
+
+                <!-- Brands (Dynamic) -->
+                <div class="filter-group">
+                    <label>Brand</label>
+                    <div id="brandFilters" class="checkbox-group"></div>
+                </div>
+
+                <!-- Price Ranges (Dynamic) -->
+                <div class="filter-group">
+                    <label>Price Ranges</label>
+                    <div id="priceRangeFilters" class="info-list"></div>
+                </div>
+
+                <!-- Tags (Dynamic) -->
+                <div class="filter-group">
+                    <label>Tags</label>
+                    <div id="tagFilters" class="tag-list"></div>
+                </div>
+
+                <button id="applyFilters" class="apply-btn">Apply Filters</button>
+                <button id="resetFilters" class="reset-btn">Reset All</button>
+            </aside>
+
+            <!-- Results Section -->
+            <main class="results-section">
+                <!-- Results Info -->
+                <div class="results-info">
+                    <div id="resultsCount">Search for products...</div>
+                    <div id="searchTime"></div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Searching...</p>
+                </div>
+
+                <!-- Products Grid -->
+                <div id="productsGrid" class="products-grid"></div>
+
+                <!-- Pagination -->
+                <div id="pagination" class="pagination"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
