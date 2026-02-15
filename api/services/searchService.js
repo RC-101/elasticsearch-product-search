@@ -1,4 +1,4 @@
-const { client } = require('../config/elasticsearch');
+const { client } = require("../config/elasticsearch");
 
 class SearchService {
   constructor(indexName) {
@@ -10,7 +10,7 @@ class SearchService {
    */
   async search(params) {
     const {
-      query = '',
+      query = "",
       category,
       brand,
       minPrice,
@@ -18,9 +18,9 @@ class SearchService {
       minRating,
       inStock,
       tags,
-      sortBy = 'relevance',
+      sortBy = "relevance",
       page = 1,
-      size = 20
+      size = 20,
     } = params;
 
     const from = (page - 1) * size;
@@ -34,11 +34,11 @@ class SearchService {
       must.push({
         multi_match: {
           query,
-          fields: ['name^3', 'description', 'brand^2', 'category'],
-          type: 'best_fields',
-          fuzziness: 'AUTO',
-          operator: 'or'
-        }
+          fields: ["name^3", "description", "brand^2", "category"],
+          type: "best_fields",
+          fuzziness: "AUTO",
+          operator: "or",
+        },
       });
     } else {
       must.push({ match_all: {} });
@@ -64,7 +64,7 @@ class SearchService {
       filter.push({ range: { rating: { gte: parseFloat(minRating) } } });
     }
 
-    if (inStock === 'true' || inStock === true) {
+    if (inStock === "true" || inStock === true) {
       filter.push({ term: { in_stock: true } });
     }
 
@@ -76,66 +76,66 @@ class SearchService {
     // Build sort
     let sort = [];
     switch (sortBy) {
-      case 'price_asc':
-        sort = [{ price: 'asc' }];
+      case "price_asc":
+        sort = [{ price: "asc" }];
         break;
-      case 'price_desc':
-        sort = [{ price: 'desc' }];
+      case "price_desc":
+        sort = [{ price: "desc" }];
         break;
-      case 'rating':
-        sort = [{ rating: 'desc' }, { reviews_count: 'desc' }];
+      case "rating":
+        sort = [{ rating: "desc" }, { reviews_count: "desc" }];
         break;
-      case 'newest':
-        sort = [{ created_at: 'desc' }];
+      case "newest":
+        sort = [{ created_at: "desc" }];
         break;
-      case 'popular':
-        sort = [{ reviews_count: 'desc' }];
+      case "popular":
+        sort = [{ reviews_count: "desc" }];
         break;
       default:
-        sort = ['_score', { rating: 'desc' }];
+        sort = ["_score", { rating: "desc" }];
     }
 
     // Elasticsearch query
     const body = {
       query: {
-        bool: { must, filter }
+        bool: { must, filter },
       },
       sort,
       from,
       size,
       aggs: {
         categories: {
-          terms: { field: 'category', size: 20 }
+          terms: { field: "category", size: 20 },
         },
         brands: {
-          terms: { field: 'brand', size: 30 }
+          terms: { field: "brand", size: 30 },
         },
         price_ranges: {
           range: {
-            field: 'price',
+            field: "price",
             ranges: [
-              { key: 'Under ₹500', to: 500 },
-              { key: '₹500 - ₹1000', from: 500, to: 1000 },
-              { key: '₹1000 - ₹2500', from: 1000, to: 2500 },
-              { key: '₹2500 - ₹5000', from: 2500, to: 5000 },
-              { key: '₹5000+', from: 5000 }
-            ]
-          }
+              { key: "Under ₹500", to: 500 },
+              { key: "₹500 - ₹1000", from: 500, to: 1000 },
+              { key: "₹1000 - ₹2500", from: 1000, to: 2500 },
+              { key: "₹2500 - ₹5000", from: 2500, to: 5000 },
+              { key: "₹5000+", from: 5000 },
+            ],
+          },
         },
         avg_price: {
-          avg: { field: 'price' }
+          avg: { field: "price" },
         },
         tags: {
-          terms: { field: 'tags', size: 15 }
-        }
+          terms: { field: "tags", size: 15 },
+        },
       },
-      track_total_hits: true
+      track_total_hits: true,
     };
 
     try {
       const result = await client.search({
         index: this.indexName,
-        body
+        body,
       });
 
       return {
@@ -143,21 +143,21 @@ class SearchService {
         page: parseInt(page),
         size: parseInt(size),
         total_pages: Math.ceil(result.hits.total.value / size),
-        products: result.hits.hits.map(hit => ({
+        products: result.hits.hits.map((hit) => ({
           id: hit._id,
           score: hit._score,
-          ...hit._source
+          ...hit._source,
         })),
         aggregations: {
           categories: result.aggregations.categories.buckets,
           brands: result.aggregations.brands.buckets,
           price_ranges: result.aggregations.price_ranges.buckets,
           avg_price: result.aggregations.avg_price.value,
-          tags: result.aggregations.tags.buckets
-        }
+          tags: result.aggregations.tags.buckets,
+        },
       };
     } catch (error) {
-      console.error('Search error:', error);
+      console.error("Search error:", error);
       throw error;
     }
   }
@@ -177,41 +177,64 @@ class SearchService {
           query: {
             bool: {
               should: [
-                {
-                  match: {
-                    name: {
-                      query,
-                      fuzziness: 'AUTO',
-                      prefix_length: 1
-                    }
-                  }
-                },
+                // Exact prefix match (highest priority)
                 {
                   match_phrase_prefix: {
                     name: {
                       query,
-                      max_expansions: 10
-                    }
-                  }
-                }
-              ]
-            }
+                      boost: 3,
+                    },
+                  },
+                },
+                // Fuzzy match for typos
+                {
+                  match: {
+                    name: {
+                      query,
+                      fuzziness: "AUTO",
+                      boost: 2,
+                    },
+                  },
+                },
+                // Match in brand
+                {
+                  match: {
+                    brand: {
+                      query,
+                      fuzziness: "AUTO",
+                      boost: 1.5,
+                    },
+                  },
+                },
+                // Wildcard for partial matches
+                {
+                  wildcard: {
+                    "name.keyword": {
+                      value: `*${query}*`,
+                      case_insensitive: true,
+                      boost: 1,
+                    },
+                  },
+                },
+              ],
+              minimum_should_match: 1,
+            },
           },
-          _source: ['name', 'category', 'brand', 'price', 'rating'],
-          size
-        }
+          _source: ["name", "category", "brand", "price", "rating"],
+          size,
+        },
       });
 
-      return result.hits.hits.map(hit => ({
+      return result.hits.hits.map((hit) => ({
         id: hit._id,
         name: hit._source.name,
         category: hit._source.category,
         brand: hit._source.brand,
         price: hit._source.price,
-        rating: hit._source.rating
+        rating: hit._source.rating,
       }));
     } catch (error) {
-      console.error('Autocomplete error:', error);
+      console.error("Autocomplete error:", error);
       throw error;
     }
   }
@@ -223,18 +246,18 @@ class SearchService {
     try {
       const result = await client.get({
         index: this.indexName,
-        id: productId
+        id: productId,
       });
 
       return {
         id: result._id,
-        ...result._source
+        ...result._source,
       };
     } catch (error) {
       if (error.meta?.statusCode === 404) {
         return null;
       }
-      console.error('Get by ID error:', error);
+      console.error("Get by ID error:", error);
       throw error;
     }
   }
@@ -249,30 +272,30 @@ class SearchService {
         body: {
           query: {
             more_like_this: {
-              fields: ['name', 'description', 'category', 'brand'],
+              fields: ["name", "description", "category", "brand"],
               like: [
                 {
                   _index: this.indexName,
-                  _id: productId
-                }
+                  _id: productId,
+                },
               ],
               min_term_freq: 1,
               min_doc_freq: 1,
-              max_query_terms: 12
-            }
+              max_query_terms: 12,
+            },
           },
-          _source: ['name', 'category', 'brand', 'price', 'rating', 'in_stock'],
-          size
-        }
+          _source: ["name", "category", "brand", "price", "rating", "in_stock"],
+          size,
+        },
       });
 
-      return result.hits.hits.map(hit => ({
+      return result.hits.hits.map((hit) => ({
         id: hit._id,
         score: hit._score,
-        ...hit._source
+        ...hit._source,
       }));
     } catch (error) {
-      console.error('Similar products error:', error);
+      console.error("Similar products error:", error);
       throw error;
     }
   }
@@ -288,31 +311,31 @@ class SearchService {
           size: 0,
           aggs: {
             total_products: {
-              value_count: { field: 'id.keyword' }
+              value_count: { field: "id.keyword" },
             },
             categories_count: {
-              cardinality: { field: 'category' }
+              cardinality: { field: "category" },
             },
             brands_count: {
-              cardinality: { field: 'brand' }
+              cardinality: { field: "brand" },
             },
             price_stats: {
-              stats: { field: 'price' }
+              stats: { field: "price" },
             },
             avg_rating: {
-              avg: { field: 'rating' }
+              avg: { field: "rating" },
             },
             in_stock_count: {
-              filter: { term: { in_stock: true } }
+              filter: { term: { in_stock: true } },
             },
             top_categories: {
-              terms: { field: 'category', size: 10 }
+              terms: { field: "category", size: 10 },
             },
             top_brands: {
-              terms: { field: 'brand', size: 10 }
-            }
-          }
-        }
+              terms: { field: "brand", size: 10 },
+            },
+          },
+        },
       });
 
       const aggs = result.aggregations;
@@ -325,14 +348,14 @@ class SearchService {
           min: aggs.price_stats.min,
           max: aggs.price_stats.max,
           avg: aggs.price_stats.avg,
-          sum: aggs.price_stats.sum
+          sum: aggs.price_stats.sum,
         },
         avg_rating: aggs.avg_rating.value,
         top_categories: aggs.top_categories.buckets,
-        top_brands: aggs.top_brands.buckets
+        top_brands: aggs.top_brands.buckets,
       };
     } catch (error) {
-      console.error('Stats error:', error);
+      console.error("Stats error:", error);
       throw error;
     }
   }
