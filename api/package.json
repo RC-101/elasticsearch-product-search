@@ -9,7 +9,10 @@
     "dev": "nodemon server.js",
     "seed": "node scripts/seedData.js",
     "seed:small": "node scripts/seedData.js 100",
-    "seed:large": "node scripts/seedData.js 5000"
+    "seed:large": "node scripts/seedData.js 5000",
+    "seed:xl": "node scripts/seedData.js 10000",
+    "compare": "node scripts/performanceComparison.js",
+    "compare:scale": "node scripts/performanceComparison.js 10000"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +22,8 @@
     "@elastic/elasticsearch": "^8.12.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "mongoose": "^9.2.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

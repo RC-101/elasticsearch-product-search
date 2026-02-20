@@ -35,6 +35,25 @@ services:
       timeout: 10s
       retries: 5
 
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb_comparison
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=mongopass123
+      - MONGO_INITDB_DATABASE=products_comparison
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   es_data:
+    driver: local
+  mongo_data:
     driver: local
